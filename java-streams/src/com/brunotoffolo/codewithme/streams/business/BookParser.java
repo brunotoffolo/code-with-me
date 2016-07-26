@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +48,8 @@ public class BookParser {
                 !manualListIteration.equals(parallelStreamIteration)) {
             System.err.println("Methods do not generate the same results");
         }
+
+        countLinesThatStartWithUppercase(bookWordsList);
     }
 
     /**
@@ -126,6 +129,30 @@ public class BookParser {
         long endParallelStream = System.currentTimeMillis();
         System.out.println("Java 8 parallel stream: " + (endParallelStream - startParallelStream));
         return parallelStream;
+    }
+
+    /**
+     * Counts how many lines start with an uppercase letter and them calculates the
+     * average character count in each of them.
+     * @param book Book contents
+     */
+    private static void countLinesThatStartWithUppercase(List<String> book) {
+        long matches = book
+                .stream()
+                .filter(r -> r.matches("[A-Z].*"))
+                .count();
+
+        // We can't reuse the same stream :(
+        OptionalDouble averageCharacters = book
+                .stream()
+                .filter(r -> r.matches("[A-Z].*"))
+                .mapToInt(r -> r.length())
+                .average();
+
+        System.out.println("There are " + matches + " lines starting with an uppercase letter.");
+
+        averageCharacters.ifPresent(value ->
+                System.out.println("They have, in average, " + value + " characters each."));
     }
 
 }

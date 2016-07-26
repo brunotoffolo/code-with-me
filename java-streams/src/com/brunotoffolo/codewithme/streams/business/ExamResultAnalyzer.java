@@ -15,7 +15,8 @@ import java.util.stream.Collectors;
  * The code below shows how to do such an operation using classic Java 7
  * for-each loops to perform this computation and, also, a new strategy
  * to perform the same thing making use of the new Java 8 concept of
- * streams.
+ * streams. Additional examples were also introduced to demonstrate what
+ * can be achieved when leveraging the power of Java streams.
  * <p>
  * The time measurements realized in this class should not be seen as a
  * real benchmark as they do not perform any kind of warm-up and do not
@@ -34,9 +35,18 @@ public class ExamResultAnalyzer {
     public static void main(String[] args) {
         List<ExamResult> examResults = prepareExamResults(10000000L);
 
+        // Simple stream expression to check if there is any very high grade
+        boolean match = examResults.stream().anyMatch(r -> r.getGrade() > 9.998);
+        if (match) {
+            System.out.println("At least one student got a grade higher than 9.998");
+        }
+
         List<Integer> manualResults = manualIteration(examResults);
         List<Integer> streamResults = streamOperations(examResults);
         System.out.println("Results match = " + manualResults.equals(streamResults));
+
+        // Just another operation to demonstrate the power of streams
+        getAverageGrade(examResults);
     }
 
     /**
@@ -103,6 +113,18 @@ public class ExamResultAnalyzer {
         System.out.println("Time consumed for stream operations = " + (endStreams - startStreams));
 
         return streamRegistries;
+    }
+
+    /**
+     * Gets the average grade for all the students that took the exam.
+     * @param examResults List of exam results
+     */
+    private static void getAverageGrade(List<ExamResult> examResults) {
+        OptionalDouble average = examResults
+                .stream()
+                .mapToDouble(r -> r.getGrade())
+                .average();
+        average.ifPresent(System.out::println);
     }
 
 }
