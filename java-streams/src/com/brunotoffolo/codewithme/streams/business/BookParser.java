@@ -6,9 +6,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Simple class used to parse the contents of a book.
+ * Simple class used to parse the contents of a book and demonstrate some
+ * useful aspects of Java 8 streams.
  * <p>
  * The time measurements realized in this class should not be seen as a
  * real benchmark as they do not perform any kind of warm-up and do not
@@ -37,8 +39,12 @@ public class BookParser {
         List<String> manualListIteration = manualListIteration(bookWordsList);
         List<String> manualArrayIteration = manualArrayIteration(
                 bookWordsList.toArray(new String[bookWordsList.size()]));
+        List<String> sequentialStreamIteration = sequentialStreamIteration(bookWordsList);
+        List<String> parallelStreamIteration = parallelStreamIteration(bookWordsList);
 
-        if (!manualListIteration.equals(manualArrayIteration)) {
+        if (!manualListIteration.equals(manualArrayIteration) ||
+                !manualListIteration.equals(sequentialStreamIteration) ||
+                !manualListIteration.equals(parallelStreamIteration)) {
             System.err.println("Methods do not generate the same results");
         }
     }
@@ -82,6 +88,44 @@ public class BookParser {
         long endManualArray = System.currentTimeMillis();
         System.out.println("Java 7 for-each in an array: " + (endManualArray - startManualArray));
         return manuallyFilteredArray;
+    }
+
+    /**
+     * Searches for the number of lines that contain a specific word in the book.
+     * Performs this operation through the new Java 8 approach, using a sequential
+     * Stream.
+     *
+     * @param bookWordsList Book contents
+     * @return List of lines that contain the word, converted to uppercase
+     */
+    private static List<String> sequentialStreamIteration(List<String> bookWordsList) {
+        long startSequentialStream = System.currentTimeMillis();
+        List<String> sequentialStream = bookWordsList.stream()
+                .filter(line -> line.contains(DESIRED_WORD))
+                .map(line -> line.toUpperCase())
+                .collect(Collectors.toList());
+        long endSequentialStream = System.currentTimeMillis();
+        System.out.println("Java 8 sequential stream: " + (endSequentialStream - startSequentialStream));
+        return sequentialStream;
+    }
+
+    /**
+     * Searches for the number of lines that contain a specific word in the book.
+     * Performs this operation through the new Java 8 approach, but using a parallel
+     * Stream.
+     *
+     * @param bookWordsList Book contents
+     * @return List of lines that contain the word, converted to uppercase
+     */
+    private static List<String> parallelStreamIteration(List<String> bookWordsList) {
+        long startParallelStream = System.currentTimeMillis();
+        List<String> parallelStream = bookWordsList.parallelStream()
+                .filter(line -> line.contains(DESIRED_WORD))
+                .map(line -> line.toUpperCase())
+                .collect(Collectors.toList());
+        long endParallelStream = System.currentTimeMillis();
+        System.out.println("Java 8 parallel stream: " + (endParallelStream - startParallelStream));
+        return parallelStream;
     }
 
 }
